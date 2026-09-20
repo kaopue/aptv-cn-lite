@@ -1,4 +1,4 @@
-name: Update APTV CN Lite V2
+name: Update APTV CN Lite FINAL
 
 on:
   workflow_dispatch:
@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: aptv-cn-lite-update
+  cancel-in-progress: true
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -15,396 +19,603 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Install ffmpeg
+      - name: Install media tools
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq ffmpeg
+          sudo apt-get install -y -qq ffmpeg curl
 
-      - name: Build and speed-test playlist
+      - name: Build verified live playlist
         shell: bash
         run: |
-          python3 - <<'PY'
-          import re, subprocess, urllib.request, socket, concurrent.futures, time, os
+          python3 - <<'PYCODE'
+          import concurrent.futures
+          import datetime as dt
+          import json
+          import re
+          import subprocess
+          import time
+          import urllib.request
           from pathlib import Path
-          from urllib.parse import urlparse
+          from urllib.parse import urljoin, urlparse
 
           EPG = "https://live.fanmingming.cn/e.xml"
 
+          # 只使用仍在高频维护/自带验证机制的上游。
+          # 不再使用 Guovin 旧 raw output：其项目已明确说明旧 raw output 不再更新。
           SOURCES = [
-              ("Guovin", "https://raw.githubusercontent.com/Guovin/iptv-api/gd/output/ipv4/result.m3u"),
-              ("ChinaIPTV", "https://raw.githubusercontent.com/hujingguang/ChinaIPTV/main/cnTV_AutoUpdate.m3u8"),
-              ("CS3306", "https://raw.githubusercontent.com/cs3306/IPTV-Sources/main/data/output/iptv_collection.m3u"),
-              ("YueChan", "https://raw.githubusercontent.com/YueChan/Live/refs/heads/main/IPTV.m3u"),
-              ("CCSH", "https://raw.githubusercontent.com/CCSH/IPTV/main/live.txt"),
-              ("BestFan-CCTV", "https://raw.githubusercontent.com/best-fan/iptv-sources/main/cn_cctv_status.m3u8"),
-              ("BestFan-Province", "https://raw.githubusercontent.com/best-fan/iptv-sources/main/cn_province_status.m3u8"),
+              ("BestFan-CCTV", 0, "https://raw.githubusercontent.com/best-fan/iptv-sources/main/cn_cctv_status.m3u8"),
+              ("BestFan-Province", 0, "https://raw.githubusercontent.com/best-fan/iptv-sources/main/cn_province_status.m3u8"),
+              ("ChinaIPTV-Domestic", 0, "https://raw.githubusercontent.com/hujingguang/ChinaIPTV/main/cnTV2_GuoNei.m3u8"),
+              ("ChinaIPTV-Auto", 1, "https://raw.githubusercontent.com/hujingguang/ChinaIPTV/main/cnTV_AutoUpdate.m3u8"),
+              ("CS3306", 1, "https://raw.githubusercontent.com/cs3306/IPTV-Sources/main/data/output/iptv_collection.m3u"),
           ]
 
-          WANTED = [
-              ("CCTV-1 综合", [r"^CCTV[-_ ]?0?1(?!\d)", r"^CCTV1$", r"央视.*1套"]),
-              ("CCTV-2 财经", [r"^CCTV[-_ ]?0?2(?!\d)", r"^CCTV2$", r"央视.*2套"]),
-              ("CCTV-3 综艺", [r"^CCTV[-_ ]?0?3(?!\d)", r"^CCTV3$", r"央视.*3套"]),
-              ("CCTV-4 中文国际", [r"^CCTV[-_ ]?0?4(?!\d)", r"^CCTV4$", r"央视.*4套"]),
-              ("CCTV-5 体育", [r"^CCTV[-_ ]?0?5(?!\+|\d)", r"^CCTV5$", r"央视.*5套(?!\+)"]),
-              ("CCTV-5+ 体育赛事", [r"CCTV[-_ ]?5\+", r"CCTV5PLUS", r"体育赛事"]),
-              ("CCTV-6 电影", [r"^CCTV[-_ ]?0?6(?!\d)", r"^CCTV6$", r"央视.*6套"]),
-              ("CCTV-7 国防军事", [r"^CCTV[-_ ]?0?7(?!\d)", r"^CCTV7$", r"央视.*7套"]),
-              ("CCTV-8 电视剧", [r"^CCTV[-_ ]?0?8(?!\d)", r"^CCTV8$", r"央视.*8套"]),
-              ("CCTV-9 纪录", [r"^CCTV[-_ ]?0?9(?!\d)", r"^CCTV9$", r"央视.*9套"]),
-              ("CCTV-10 科教", [r"^CCTV[-_ ]?10(?!\d)", r"央视.*10套"]),
-              ("CCTV-11 戏曲", [r"^CCTV[-_ ]?11(?!\d)", r"央视.*11套"]),
-              ("CCTV-12 社会与法", [r"^CCTV[-_ ]?12(?!\d)", r"央视.*12套"]),
-              ("CCTV-13 新闻", [r"^CCTV[-_ ]?13(?!\d)", r"央视.*13套"]),
-              ("CCTV-14 少儿", [r"^CCTV[-_ ]?14(?!\d)", r"央视.*14套"]),
-              ("CCTV-15 音乐", [r"^CCTV[-_ ]?15(?!\d)", r"央视.*15套"]),
-              ("CCTV-16 奥林匹克", [r"^CCTV[-_ ]?16(?!\d)", r"央视.*16套"]),
-              ("CCTV-17 农业农村", [r"^CCTV[-_ ]?17(?!\d)", r"央视.*17套"]),
-              ("北京卫视", [r"北京卫视"]),
-              ("湖南卫视", [r"湖南卫视"]),
-              ("东方卫视", [r"东方卫视", r"上海卫视"]),
-              ("浙江卫视", [r"浙江卫视"]),
-              ("江苏卫视", [r"江苏卫视"]),
-              ("广东卫视", [r"广东卫视"]),
-              ("深圳卫视", [r"深圳卫视"]),
-              ("河北卫视", [r"河北卫视"]),
-              ("山东卫视", [r"山东卫视"]),
-              ("安徽卫视", [r"安徽卫视"]),
-              ("河南卫视", [r"河南卫视"]),
-              ("湖北卫视", [r"湖北卫视"]),
-              ("天津卫视", [r"天津卫视"]),
+          CHANNELS = [
+              ("CCTV-1 综合", "CCTV-1", "央视频道"),
+              ("CCTV-2 财经", "CCTV-2", "央视频道"),
+              ("CCTV-3 综艺", "CCTV-3", "央视频道"),
+              ("CCTV-4 中文国际", "CCTV-4", "央视频道"),
+              ("CCTV-5 体育", "CCTV-5", "央视频道"),
+              ("CCTV-5+ 体育赛事", "CCTV-5+", "央视频道"),
+              ("CCTV-6 电影", "CCTV-6", "央视频道"),
+              ("CCTV-7 国防军事", "CCTV-7", "央视频道"),
+              ("CCTV-8 电视剧", "CCTV-8", "央视频道"),
+              ("CCTV-9 纪录", "CCTV-9", "央视频道"),
+              ("CCTV-10 科教", "CCTV-10", "央视频道"),
+              ("CCTV-11 戏曲", "CCTV-11", "央视频道"),
+              ("CCTV-12 社会与法", "CCTV-12", "央视频道"),
+              ("CCTV-13 新闻", "CCTV-13", "央视频道"),
+              ("CCTV-14 少儿", "CCTV-14", "央视频道"),
+              ("CCTV-15 音乐", "CCTV-15", "央视频道"),
+              ("CCTV-16 奥林匹克", "CCTV-16", "央视频道"),
+              ("CCTV-17 农业农村", "CCTV-17", "央视频道"),
+              ("北京卫视", "北京卫视", "卫视频道"),
+              ("湖南卫视", "湖南卫视", "卫视频道"),
+              ("东方卫视", "东方卫视", "卫视频道"),
+              ("浙江卫视", "浙江卫视", "卫视频道"),
+              ("江苏卫视", "江苏卫视", "卫视频道"),
+              ("广东卫视", "广东卫视", "卫视频道"),
+              ("深圳卫视", "深圳卫视", "卫视频道"),
+              ("河北卫视", "河北卫视", "卫视频道"),
+              ("山东卫视", "山东卫视", "卫视频道"),
+              ("安徽卫视", "安徽卫视", "卫视频道"),
+              ("河南卫视", "河南卫视", "卫视频道"),
+              ("湖北卫视", "湖北卫视", "卫视频道"),
+              ("天津卫视", "天津卫视", "卫视频道"),
           ]
 
           IMPORTANT = {
-              "CCTV-1 综合","CCTV-2 财经","CCTV-3 综艺","CCTV-4 中文国际",
-              "CCTV-5 体育","CCTV-5+ 体育赛事","CCTV-6 电影","CCTV-8 电视剧",
-              "CCTV-13 新闻","北京卫视","湖南卫视","东方卫视","浙江卫视",
-              "江苏卫视","广东卫视","深圳卫视","河北卫视"
+              "CCTV-1 综合", "CCTV-3 综艺", "CCTV-5 体育", "CCTV-5+ 体育赛事",
+              "CCTV-6 电影", "CCTV-8 电视剧", "CCTV-13 新闻",
+              "北京卫视", "湖南卫视", "东方卫视", "浙江卫视", "江苏卫视",
+              "广东卫视", "深圳卫视", "河北卫视"
           }
 
-          # 国内网络优先的轻量规则：先偏好国内运营商/电视平台域名，再按实测首包和速率排序。
-          DOMESTIC_HINTS = (
-              "chinamobile","mobaibox","cmvideo","bestv","cctv","cntv","iptv",
-              "telecom","unicom","ltetp","hl.chinamobile","ott.mobaibox"
-          )
+          CORE_REQUIRED = {"CCTV-1 综合", "CCTV-5 体育", "CCTV-13 新闻"}
+          BAD_NAME_HINTS = ("购物", "测试", "轮播", "导视", "预告", "体验", "成人", "音频", "广播")
+          MIN_MAIN_CHANNELS = 27
+          MAX_CANDIDATES_PER_CHANNEL = 20
+          FIRST_STAGE_WORKERS = 28
+          FFPROBE_WORKERS = 12
 
-          BAD_HINTS = ("购物","测试","轮播","导视","预告","体验","付费","成人")
-
-          def fetch(url, timeout=20):
-              req = urllib.request.Request(url, headers={"User-Agent":"Mozilla/5.0 APTV-CN-Lite-V2"})
+          def fetch_bytes(url, headers=None, timeout=12, limit=None):
+              h = {"User-Agent": "Mozilla/5.0 APTV-CN-Lite-Final"}
+              if headers:
+                  h.update(headers)
+              req = urllib.request.Request(url, headers=h)
               with urllib.request.urlopen(req, timeout=timeout) as r:
-                  return r.read().decode("utf-8", "ignore")
+                  data = r.read() if limit is None else r.read(limit)
+                  return data, r.geturl(), dict(r.headers)
 
-          def normalize_name(name):
-              s = name.upper().strip()
-              s = re.sub(r"\[[^\]]*\]|\([^\)]*\)", "", s)
-              s = s.replace("高清","").replace("超清","").replace("蓝光","")
-              s = s.replace("频道","").replace("HD","").replace("4K","")
-              return re.sub(r"\s+", "", s)
+          def fetch_text(url, headers=None, timeout=12, limit=None):
+              data, final_url, resp_headers = fetch_bytes(url, headers, timeout, limit)
+              return data.decode("utf-8", "ignore"), final_url, resp_headers
 
-          def parse_m3u(text, source):
+          def attrs_from_extinf(ext):
+              return {k.lower(): v for k, v in re.findall(r'([A-Za-z0-9_-]+)="([^"]*)"', ext or "")}
+
+          def parse_declared_latency(attrs):
+              raw = attrs.get("response-time", "")
+              m = re.search(r"([0-9.]+)\s*ms", raw, re.I)
+              if m:
+                  return float(m.group(1)) / 1000.0
+              m = re.search(r"([0-9.]+)\s*s", raw, re.I)
+              if m:
+                  return float(m.group(1))
+              return 999.0
+
+          def parse_m3u(text, source, source_priority):
               lines = [x.strip() for x in text.splitlines() if x.strip()]
               out = []
-              for i, line in enumerate(lines):
+              i = 0
+              while i < len(lines):
+                  line = lines[i]
                   if not line.startswith("#EXTINF"):
+                      i += 1
                       continue
-                  name = line.split(",", 1)[1].strip() if "," in line else ""
+                  ext = line
+                  name = ext.split(",", 1)[1].strip() if "," in ext else ""
+                  attrs = attrs_from_extinf(ext)
                   url = ""
-                  for j in range(i+1, min(i+8, len(lines))):
+                  j = i + 1
+                  while j < len(lines):
                       if lines[j].startswith("#EXTINF"):
                           break
                       if not lines[j].startswith("#"):
                           url = lines[j].strip()
                           break
-                  if url.startswith(("http://","https://")):
-                      out.append((name, line, url, source))
+                      j += 1
+                  if url.startswith(("http://", "https://")):
+                      out.append({
+                          "name": name,
+                          "attrs": attrs,
+                          "url": url,
+                          "source": source,
+                          "source_priority": source_priority,
+                          "declared_latency": parse_declared_latency(attrs),
+                      })
+                  i += 1
               return out
 
-          def parse_txt(text, source):
-              out = []
-              for line in text.splitlines():
-                  line = line.strip()
-                  if not line or line.startswith("#") or "#genre#" in line:
-                      continue
-                  if "," not in line:
-                      continue
-                  name, url = line.split(",", 1)
-                  name, url = name.strip(), url.strip()
-                  if url.startswith(("http://","https://")):
-                      out.append((name, "", url, source))
-              return out
+          def source_fresh_enough(source, text):
+              # BestFan 状态文件自带 #DATE；超过 72 小时则不用，防止抓到旧缓存。
+              if source.startswith("BestFan"):
+                  m = re.search(r"^#DATE:\s*(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})", text, re.M)
+                  if not m:
+                      return False
+                  try:
+                      stamp = dt.datetime.strptime(m.group(1), "%Y-%m-%d %H:%M:%S")
+                      age = dt.datetime.now() - stamp
+                      return age.total_seconds() <= 72 * 3600
+                  except Exception:
+                      return False
+              return True
 
-          def matches(name, patterns):
-              n = normalize_name(name)
-              raw = name.strip()
-              if any(b in raw for b in BAD_HINTS):
+          def clean_identity(s):
+              s = (s or "").upper().strip()
+              s = re.sub(r"\[[^\]]*\]|\([^\)]*\)", "", s)
+              s = re.sub(r"(2160P|1080P|1080I|720P|576P|480P|4K|8K|FHD|UHD|HD|高清|超清|蓝光)", "", s)
+              s = re.sub(r"[\s_-]+", "", s)
+              return s
+
+          def item_identity(item):
+              a = item.get("attrs", {})
+              parts = [item.get("name", ""), a.get("tvg-id", ""), a.get("tvg-name", "")]
+              return "|".join(clean_identity(x) for x in parts if x)
+
+          def is_radio_or_bad(item):
+              a = item.get("attrs", {})
+              raw = "|".join([item.get("name", ""), a.get("tvg-name", ""), a.get("group-title", "")])
+              if a.get("radio", "").lower() == "true":
+                  return True
+              return any(x in raw for x in BAD_NAME_HINTS)
+
+          def channel_match(display, item):
+              if is_radio_or_bad(item):
                   return False
-              for p in patterns:
-                  if re.search(p, raw, re.I) or re.search(p, n, re.I):
-                      return True
-              return False
+              ident = item_identity(item)
 
-          def url_host(url):
+              if display.startswith("CCTV-"):
+                  if display == "CCTV-5+ 体育赛事":
+                      return any(x in ident for x in ("CCTV5+", "CCTV5PLUS", "CCTV5P", "体育赛事"))
+
+                  m = re.match(r"CCTV-(\d+)", display)
+                  if not m:
+                      return False
+                  num = m.group(1)
+
+                  # CCTV-5 明确排除 5+ / 5P / PLUS；CCTV-4 排除 CCTV-4K。
+                  if display == "CCTV-5 体育" and any(x in ident for x in ("CCTV5+", "CCTV5PLUS", "CCTV5P", "体育赛事")):
+                      return False
+                  if display == "CCTV-4 中文国际" and "CCTV4K" in ident:
+                      return False
+
+                  if re.search(rf"(?:^|\|)CCTV0?{num}(?:$|\|)", ident):
+                      return True
+                  if f"央视{num}套" in ident:
+                      return True
+                  return False
+
+              aliases = {
+                  "北京卫视": ("北京卫视", "BTV1"),
+                  "湖南卫视": ("湖南卫视",),
+                  "东方卫视": ("东方卫视", "上海卫视", "东视"),
+                  "浙江卫视": ("浙江卫视",),
+                  "江苏卫视": ("江苏卫视", "荔枝台"),
+                  "广东卫视": ("广东卫视", "GDTV"),
+                  "深圳卫视": ("深圳卫视", "SZTV"),
+                  "河北卫视": ("河北卫视",),
+                  "山东卫视": ("山东卫视",),
+                  "安徽卫视": ("安徽卫视",),
+                  "河南卫视": ("河南卫视",),
+                  "湖北卫视": ("湖北卫视",),
+                  "天津卫视": ("天津卫视",),
+              }
+              return any(clean_identity(x) in ident for x in aliases.get(display, (display,)))
+
+          def request_headers(item):
+              a = item.get("attrs", {})
+              h = {}
+              ua = a.get("http-user-agent") or a.get("user-agent")
+              ref = a.get("http-referer") or a.get("http-referrer") or a.get("referer")
+              if ua:
+                  h["User-Agent"] = ua
+              if ref:
+                  h["Referer"] = ref
+              return h
+
+          def host_of(url):
               try:
                   return (urlparse(url).hostname or "").lower()
-              except:
+              except Exception:
                   return ""
 
-          def domestic_score(url):
-              h = url_host(url)
-              return 0 if any(x in h for x in DOMESTIC_HINTS) else 1
+          def choose_master_variant(text, base_url):
+              lines = [x.strip() for x in text.splitlines() if x.strip()]
+              variants = []
+              for i, line in enumerate(lines):
+                  if not line.startswith("#EXT-X-STREAM-INF"):
+                      continue
+                  uri = ""
+                  for j in range(i + 1, min(i + 4, len(lines))):
+                      if not lines[j].startswith("#"):
+                          uri = lines[j]
+                          break
+                  if not uri:
+                      continue
+                  bw = 0
+                  area = 0
+                  mbw = re.search(r"BANDWIDTH=(\d+)", line)
+                  if mbw:
+                      bw = int(mbw.group(1))
+                  mres = re.search(r"RESOLUTION=(\d+)x(\d+)", line)
+                  if mres:
+                      area = int(mres.group(1)) * int(mres.group(2))
+                  variants.append((area, bw, urljoin(base_url, uri)))
+              if not variants:
+                  return None
+              # 直播观看优先 1080p 及以下的最高画质；只有 4K 时才回退 4K。
+              within_1080 = [v for v in variants if v[0] and v[0] <= 1920 * 1080]
+              pool = within_1080 or variants
+              return max(pool, key=lambda x: (x[0], x[1]))[2]
 
-          def curl_probe(url):
-              cmd = [
-                  "curl","-L","--silent","--show-error",
-                  "--connect-timeout","2.5","--max-time","6",
-                  "--range","0-131071",
-                  "-A","Mozilla/5.0 APTV-CN-Lite-V2",
-                  "-o","/dev/null",
-                  "-w","%{http_code}|%{time_starttransfer}|%{speed_download}|%{url_effective}",
-                  url
-              ]
-              t0 = time.time()
-              try:
-                  p = subprocess.run(cmd, capture_output=True, text=True, timeout=8)
-                  if p.returncode != 0:
-                      return None
-                  parts = p.stdout.strip().split("|",3)
-                  if len(parts) != 4:
-                      return None
-                  code = int(parts[0] or 0)
-                  ttfb = float(parts[1] or 99)
-                  speed = float(parts[2] or 0)
-                  eff = parts[3].strip() or url
-                  if code not in (200,206) or ttfb > 5.5:
-                      return None
-                  return {"url":url,"effective":eff,"ttfb":ttfb,"speed":speed,"code":code,"probe_time":time.time()-t0}
-              except:
+          def resolve_live_media_playlist(item):
+              headers = request_headers(item)
+              text, effective, _ = fetch_text(item["url"], headers, timeout=6, limit=512 * 1024)
+              if "#EXTM3U" not in text:
                   return None
 
-          def ffprobe_ok(url):
+              media_url = effective
+              media_text = text
+              if "#EXT-X-STREAM-INF" in text:
+                  child = choose_master_variant(text, effective)
+                  if not child:
+                      return None
+                  media_text, media_url, _ = fetch_text(child, headers, timeout=6, limit=512 * 1024)
+                  if "#EXTM3U" not in media_text:
+                      return None
+                  if "#EXT-X-STREAM-INF" in media_text:
+                      child2 = choose_master_variant(media_text, media_url)
+                      if child2:
+                          media_text, media_url, _ = fetch_text(child2, headers, timeout=6, limit=512 * 1024)
+
+              # 真正媒体播放列表应包含 EXTINF；ENDLIST 表示点播/录播结束，不作为直播源。
+              if "#EXTINF" not in media_text or "#EXT-X-ENDLIST" in media_text:
+                  return None
+
+              segments = [x.strip() for x in media_text.splitlines() if x.strip() and not x.strip().startswith("#")]
+              if not segments:
+                  return None
+              segment_url = urljoin(media_url, segments[-1])
+              return media_url, media_text, segment_url
+
+          def curl_segment_probe(item, segment_url):
+              h = request_headers(item)
               cmd = [
-                  "ffprobe","-v","error",
-                  "-rw_timeout","5000000",
-                  "-analyzeduration","1500000",
-                  "-probesize","1000000",
-                  "-select_streams","v:0",
-                  "-show_entries","stream=codec_name,width,height",
-                  "-of","csv=p=0",
-                  url
+                  "curl", "-L", "--silent", "--show-error",
+                  "--connect-timeout", "2.5", "--max-time", "7",
+                  "--range", "0-524287", "-o", "/dev/null",
+                  "-w", "%{http_code}|%{time_starttransfer}|%{speed_download}|%{size_download}",
+              ]
+              if h.get("User-Agent"):
+                  cmd += ["-A", h["User-Agent"]]
+              else:
+                  cmd += ["-A", "Mozilla/5.0 APTV-CN-Lite-Final"]
+              if h.get("Referer"):
+                  cmd += ["-e", h["Referer"]]
+              cmd.append(segment_url)
+              try:
+                  p = subprocess.run(cmd, capture_output=True, text=True, timeout=9)
+                  if p.returncode != 0:
+                      return None
+                  parts = p.stdout.strip().split("|")
+                  if len(parts) != 4:
+                      return None
+                  code = int(float(parts[0] or 0))
+                  ttfb = float(parts[1] or 99)
+                  speed = float(parts[2] or 0)
+                  size = float(parts[3] or 0)
+                  if code not in (200, 206):
+                      return None
+                  if ttfb > 5.0 or speed < 32 * 1024 or size < 8 * 1024:
+                      return None
+                  return ttfb, speed, size
+              except Exception:
+                  return None
+
+          def ffprobe_video(item, media_url):
+              h = request_headers(item)
+              cmd = [
+                  "ffprobe", "-v", "error",
+                  "-rw_timeout", "6000000",
+                  "-analyzeduration", "1800000",
+                  "-probesize", "1500000",
+              ]
+              if h.get("User-Agent"):
+                  cmd += ["-user_agent", h["User-Agent"]]
+              extra_headers = []
+              if h.get("Referer"):
+                  extra_headers.append(f"Referer: {h['Referer']}")
+              if extra_headers:
+                  cmd += ["-headers", "\\r\\n".join(extra_headers) + "\\r\\n"]
+              cmd += [
+                  "-show_entries", "stream=codec_type,codec_name,width,height:format=duration",
+                  "-of", "json", media_url
               ]
               try:
-                  p = subprocess.run(cmd, capture_output=True, text=True, timeout=8)
-                  txt = p.stdout.strip()
-                  if p.returncode == 0 and txt:
-                      nums = re.findall(r"\d+", txt)
-                      area = 0
-                      if len(nums) >= 2:
-                          try:
-                              area = int(nums[-2]) * int(nums[-1])
-                          except:
-                              area = 0
-                      return True, area, txt
-              except:
-                  pass
-              return False, 0, ""
+                  p = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+                  if p.returncode != 0 or not p.stdout.strip():
+                      return None
+                  data = json.loads(p.stdout)
+                  videos = [s for s in data.get("streams", []) if s.get("codec_type") == "video"]
+                  if not videos:
+                      return None
+                  best = max(videos, key=lambda s: int(s.get("width") or 0) * int(s.get("height") or 0))
+                  width = int(best.get("width") or 0)
+                  height = int(best.get("height") or 0)
+                  if width <= 0 or height < 360:
+                      return None
+                  return width, height, best.get("codec_name") or ""
+              except Exception:
+                  return None
 
-          # 读上一次结果，防止某个上游临时抽风时把历史好线路完全丢掉
-          previous = []
+          def validate_candidate(item):
+              try:
+                  resolved = resolve_live_media_playlist(item)
+                  if not resolved:
+                      return None
+                  media_url, _media_text, segment_url = resolved
+                  net = curl_segment_probe(item, segment_url)
+                  if not net:
+                      return None
+                  video = ffprobe_video(item, media_url)
+                  if not video:
+                      return None
+                  ttfb, speed, size = net
+                  width, height, codec = video
+                  x = dict(item)
+                  x.update({
+                      "media_url": media_url,
+                      "segment_url": segment_url,
+                      "ttfb": ttfb,
+                      "speed": speed,
+                      "segment_size": size,
+                      "width": width,
+                      "height": height,
+                      "area": width * height,
+                      "codec": codec,
+                  })
+                  return x
+              except Exception:
+                  return None
+
+          def quality_penalty(x):
+              h = x.get("height", 0)
+              if h >= 1080:
+                  return 0.0
+              if h >= 720:
+                  return 0.08
+              if h >= 576:
+                  return 0.20
+              return 0.40
+
+          def rank_score(x):
+              # 测的是实际媒体分片，而不是几 KB 的 m3u8 文本。
+              # 速度达到约 1.5 MB/s 后收益封顶，避免 GitHub 节点测速偶然值过度影响排序。
+              speed_mb = x.get("speed", 0) / (1024 * 1024)
+              speed_penalty = max(0.0, 1.5 - min(speed_mb, 1.5)) * 0.35
+              return (
+                  x.get("source_priority", 2) * 0.10
+                  + x.get("ttfb", 9) * 0.70
+                  + speed_penalty
+                  + quality_penalty(x)
+              )
+
+          def select_diverse(rows, limit):
+              rows = sorted(rows, key=rank_score)
+              selected = []
+              used_hosts = set()
+              used_sources = set()
+
+              # 首轮优先不同 host，同时尽量不同上游来源。
+              for x in rows:
+                  h = host_of(x["url"])
+                  if h in used_hosts:
+                      continue
+                  if x["source"] in used_sources and len(rows) > limit:
+                      continue
+                  selected.append(x)
+                  used_hosts.add(h)
+                  used_sources.add(x["source"])
+                  if len(selected) >= limit:
+                      return selected
+
+              # 第二轮只要求 host 不重复。
+              for x in rows:
+                  if x in selected:
+                      continue
+                  h = host_of(x["url"])
+                  if h in used_hosts:
+                      continue
+                  selected.append(x)
+                  used_hosts.add(h)
+                  if len(selected) >= limit:
+                      return selected
+
+              # 最后不足才允许同 host。
+              for x in rows:
+                  if x in selected:
+                      continue
+                  selected.append(x)
+                  if len(selected) >= limit:
+                      break
+              return selected
+
+          def build_extinf(display, tvg_id, group, item, idx):
+              a = item.get("attrs", {})
+              shown = display if idx == 0 else f"{display} · 备用{idx}"
+              group_name = group if idx == 0 else "备用线路"
+              attrs = [
+                  f'tvg-id="{tvg_id}"',
+                  f'tvg-name="{tvg_id}"',
+              ]
+              logo = a.get("tvg-logo")
+              if logo:
+                  attrs.append(f'tvg-logo="{logo}"')
+              for key in ("http-user-agent", "http-referer", "http-referrer"):
+                  if a.get(key):
+                      attrs.append(f'{key}="{a[key]}"')
+              attrs.append(f'group-title="{group_name}"')
+              return f'#EXTINF:-1 {" ".join(attrs)},{shown}'
+
+          all_items = []
+          for source, priority, url in SOURCES:
+              try:
+                  text, _effective, _headers = fetch_text(url, timeout=20, limit=12 * 1024 * 1024)
+                  if not source_fresh_enough(source, text):
+                      print(f"[skip stale] {source}")
+                      continue
+                  items = parse_m3u(text, source, priority)
+                  print(f"[source] {source}: {len(items)} items")
+                  all_items.extend(items)
+              except Exception as e:
+                  print(f"[source failed] {source}: {e}")
+
+          # 上一版仅作为额外候选，而且仍必须重新通过本轮 HLS/分片/ffprobe 三重验证。
           prev_path = Path("output/aptv_cn_lite.m3u")
           if prev_path.exists():
               try:
-                  previous = parse_m3u(prev_path.read_text(encoding="utf-8", errors="ignore"), "Previous")
-              except:
-                  pass
-
-          all_items = list(previous)
-
-          for label, url in SOURCES:
-              try:
-                  txt = fetch(url)
-                  if "#EXTINF" in txt:
-                      items = parse_m3u(txt, label)
-                  else:
-                      items = parse_txt(txt, label)
-                  print(f"[source] {label}: {len(items)}")
-                  all_items.extend(items)
+                  prev_items = parse_m3u(prev_path.read_text(encoding="utf-8", errors="ignore"), "Previous", 3)
+                  all_items.extend(prev_items)
+                  print(f"[source] Previous: {len(prev_items)} items")
               except Exception as e:
-                  print(f"[source failed] {label}: {e}")
+                  print(f"[previous ignored] {e}")
 
-          # 每个目标频道先收集候选
-          candidates = {}
-          for display, patterns in WANTED:
-              rows = []
-              seen = set()
-              for name, ext, url, source in all_items:
-                  if url in seen:
+          channel_candidates = {}
+          for display, tvg_id, group in CHANNELS:
+              matches = []
+              seen_urls = set()
+              for item in all_items:
+                  if item["url"] in seen_urls:
                       continue
-                  if matches(name, patterns):
-                      seen.add(url)
-                      rows.append({
-                          "display":display,
-                          "name":name,
-                          "ext":ext,
-                          "url":url,
-                          "source":source
-                      })
-              # 避免候选过多拖垮 Actions：每源适度截断，保留总计前 28 条
-              candidates[display] = rows[:28]
-              print(f"[candidate] {display}: {len(candidates[display])}")
+                  if channel_match(display, item):
+                      seen_urls.add(item["url"])
+                      x = dict(item)
+                      x["display"] = display
+                      x["tvg_id"] = tvg_id
+                      x["group"] = group
+                      matches.append(x)
 
-          # 第一轮：并发 curl 检查，剔除超时/死链
-          flat = []
-          for display, rows in candidates.items():
-              for row in rows:
-                  flat.append((display,row))
+              matches.sort(key=lambda x: (x["source_priority"], x["declared_latency"], host_of(x["url"])))
 
-          probed = {}
-          with concurrent.futures.ThreadPoolExecutor(max_workers=32) as ex:
-              futs = {ex.submit(curl_probe,row["url"]):(display,row) for display,row in flat}
-              for fut in concurrent.futures.as_completed(futs):
-                  display,row = futs[fut]
-                  r = fut.result()
-                  if r:
-                      x = dict(row)
-                      x.update(r)
-                      probed.setdefault(display,[]).append(x)
-
-          # 先按“国内优先 + 首包 + 下载速率”取每台前 6 条进入 ffprobe
-          for display in list(probed):
-              probed[display].sort(key=lambda x: (
-                  domestic_score(x["url"]),
-                  x["ttfb"],
-                  -x["speed"]
-              ))
-              probed[display] = probed[display][:6]
-
-          # 第二轮：ffprobe 真正尝试读出视频流
-          validated = {}
-          jobs = []
-          with concurrent.futures.ThreadPoolExecutor(max_workers=14) as ex:
-              for display, rows in probed.items():
-                  for row in rows:
-                      jobs.append((display,row,ex.submit(ffprobe_ok,row["url"])))
-              for display,row,fut in jobs:
-                  ok, area, info = fut.result()
-                  if ok:
-                      x = dict(row)
-                      x["area"] = area
-                      x["ffinfo"] = info
-                      validated.setdefault(display,[]).append(x)
-
-          # 最终排序：国内优先；在可播前提下先首包，再分辨率，再速率
-          chosen = {}
-          for display, rows in validated.items():
-              rows.sort(key=lambda x: (
-                  domestic_score(x["url"]),
-                  x["ttfb"],
-                  -x["area"],
-                  -x["speed"]
-              ))
-
-              limit = 3 if display in IMPORTANT else 2
-
-              selected = []
-              used_hosts = set()
-
-              # 第一遍优先不同 host，提升真正的容灾能力
-              for x in rows:
-                  h = url_host(x["url"])
-                  if h and h in used_hosts:
-                      continue
-                  selected.append(x)
-                  if h:
-                      used_hosts.add(h)
-                  if len(selected) >= limit:
+              # 先保证 host 多样性，再填满候选，避免 20 条全来自同一服务器。
+              pre = []
+              hosts = set()
+              for x in matches:
+                  h = host_of(x["url"])
+                  if h and h not in hosts:
+                      pre.append(x)
+                      hosts.add(h)
+                  if len(pre) >= MAX_CANDIDATES_PER_CHANNEL:
                       break
-
-              # 不够时再补同 host 的高分线路
-              if len(selected) < limit:
-                  for x in rows:
-                      if x in selected:
+              if len(pre) < MAX_CANDIDATES_PER_CHANNEL:
+                  for x in matches:
+                      if x in pre:
                           continue
-                      selected.append(x)
-                      if len(selected) >= limit:
+                      pre.append(x)
+                      if len(pre) >= MAX_CANDIDATES_PER_CHANNEL:
                           break
+              channel_candidates[display] = pre
+              print(f"[candidate] {display}: {len(pre)}")
 
-              chosen[display] = selected
+          validated = {display: [] for display, _, _ in CHANNELS}
+          jobs = {}
+          with concurrent.futures.ThreadPoolExecutor(max_workers=FIRST_STAGE_WORKERS) as ex:
+              for display, rows in channel_candidates.items():
+                  for item in rows:
+                      jobs[ex.submit(validate_candidate, item)] = display
+              for fut in concurrent.futures.as_completed(jobs):
+                  display = jobs[fut]
+                  try:
+                      x = fut.result()
+                  except Exception:
+                      x = None
+                  if x:
+                      validated[display].append(x)
 
-          # 某频道本轮全挂：保留上一版对应线路作为最后兜底
-          for display, patterns in WANTED:
-              if chosen.get(display):
-                  continue
-              old = []
-              for name, ext, url, source in previous:
-                  if matches(name, patterns):
-                      old.append({
-                          "display":display,"name":name,"ext":ext,"url":url,"source":"Previous",
-                          "ttfb":99,"speed":0,"area":0
-                      })
-              if old:
-                  chosen[display] = old[:1]
-                  print(f"[fallback previous] {display}")
+          chosen = {}
+          for display, tvg_id, group in CHANNELS:
+              rows = validated.get(display, [])
+              # 重要台：主线 + 最多 3 条备用；其余：主线 + 1 条备用。
+              limit = 4 if display in IMPORTANT else 2
+              chosen[display] = select_diverse(rows, limit)
 
-          def base_tvg_id(display):
-              if display.startswith("CCTV"):
-                  return display.split()[0]
-              return display
+          main_count = sum(1 for display, _, _ in CHANNELS if chosen.get(display))
+          missing_core = sorted(x for x in CORE_REQUIRED if not chosen.get(x))
+          print(f"[summary] main channels: {main_count}/{len(CHANNELS)}")
+          if missing_core:
+              print("[fatal] missing core:", ", ".join(missing_core))
+          if main_count < MIN_MAIN_CHANNELS or missing_core:
+              raise SystemExit("Validation threshold not met; keep previous playlist unchanged")
 
-          def logo_from_ext(ext):
-              m = re.search(r'tvg-logo="([^"]+)"', ext or "")
-              return m.group(1) if m else ""
-
-          out = [f'#EXTM3U x-tvg-url="{EPG}"']
+          lines = [f'#EXTM3U x-tvg-url="{EPG}"']
           report = []
-
-          for display, _patterns in WANTED:
+          for display, tvg_id, group in CHANNELS:
               rows = chosen.get(display, [])
               if not rows:
-                  report.append(f"{display}: 0")
+                  report.append(f"{display}: MISSING")
                   continue
-
               for idx, x in enumerate(rows):
-                  if idx == 0:
-                      shown = display
-                      group = "央视频道" if display.startswith("CCTV") else "卫视频道"
-                  else:
-                      shown = f"{display} · 备用{idx}"
-                      group = "备用线路"
+                  lines.append(build_extinf(display, tvg_id, group, x, idx))
+                  lines.append(x["url"])
+              details = []
+              for i, x in enumerate(rows, 1):
+                  mbps = x["speed"] * 8 / 1_000_000
+                  details.append(
+                      f'{i}:{x["source"]} {host_of(x["url"])} '
+                      f'{x["width"]}x{x["height"]} ttfb={x["ttfb"]:.2f}s speed={mbps:.1f}Mbps'
+                  )
+              report.append(f'{display}: ' + " | ".join(details))
 
-                  tvgid = base_tvg_id(display)
-                  logo = logo_from_ext(x.get("ext",""))
-                  attrs = [
-                      f'tvg-id="{tvgid}"',
-                      f'tvg-name="{tvgid}"',
-                      f'group-title="{group}"'
-                  ]
-                  if logo:
-                      attrs.insert(2, f'tvg-logo="{logo}"')
+          out_dir = Path("output")
+          out_dir.mkdir(parents=True, exist_ok=True)
+          playlist_tmp = out_dir / "aptv_cn_lite.m3u.tmp"
+          report_tmp = out_dir / "line_report.txt.tmp"
+          playlist_tmp.write_text("\n".join(lines) + "\n", encoding="utf-8")
+          report_tmp.write_text("\n".join(report) + "\n", encoding="utf-8")
+          playlist_tmp.replace(out_dir / "aptv_cn_lite.m3u")
+          report_tmp.replace(out_dir / "line_report.txt")
 
-                  out.append(f'#EXTINF:-1 {" ".join(attrs)},{shown}')
-                  out.append(x["url"])
-
-              details = ", ".join(
-                  f'{i+1}:{url_host(x["url"])} {x.get("ttfb",99):.2f}s'
-                  for i,x in enumerate(rows)
-              )
-              report.append(f"{display}: {details}")
-
-          Path("output").mkdir(parents=True, exist_ok=True)
-          Path("output/aptv_cn_lite.m3u").write_text("\n".join(out)+"\n", encoding="utf-8")
-          Path("output/line_report.txt").write_text("\n".join(report)+"\n", encoding="utf-8")
-
-          print("\n===== RESULT =====")
+          print("===== SELECTED =====")
           print("\n".join(report))
-          print(f"\nM3U entries: {(len(out)-1)//2}")
-          PY
+          PYCODE
 
-      - name: Commit playlist and report
+      - name: Commit verified playlist
         run: |
           git config user.name "aptv-bot"
           git config user.email "actions@users.noreply.github.com"
           git add output/aptv_cn_lite.m3u output/line_report.txt
-          git diff --cached --quiet || git commit -m "Auto update fastest APTV lines"
+          git diff --cached --quiet || git commit -m "Update verified APTV live lines"
           git push
