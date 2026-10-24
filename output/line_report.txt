@@ -1,31 +1,31 @@
-CCTV-1 综合: 1:BestFan-CCTV 74.91.26.218 1280x720 ttfb=0.07s speed=14.1Mbps | 2:Previous 63.141.230.178 1280x720 ttfb=0.07s speed=13.6Mbps | 3:BestFan-CCTV 38.75.136.137 1280x720 ttfb=0.07s speed=13.3Mbps | 4:BestFan-CCTV 198.204.228.26 1280x720 ttfb=0.07s speed=13.9Mbps
-CCTV-2 财经: 1:BestFan-CCTV 74.91.26.218 1280x720 ttfb=0.07s speed=13.7Mbps | 2:Previous 192.151.150.154 1920x1080 ttfb=0.07s speed=13.3Mbps
-CCTV-3 综艺: 1:BestFan-CCTV 74.91.26.218 1280x720 ttfb=0.07s speed=13.3Mbps | 2:CS3306 63.141.230.178 1280x720 ttfb=0.07s speed=13.2Mbps | 3:Previous 107.150.60.122 1280x720 ttfb=0.08s speed=4.6Mbps | 4:BestFan-CCTV 112.123.243.37 1920x1080 ttfb=0.49s speed=1.9Mbps
-CCTV-4 中文国际: 1:BestFan-CCTV 74.91.26.218 1280x720 ttfb=0.07s speed=13.2Mbps | 2:ChinaIPTV-Auto live-play-hls.cctvnews.cctv.com 1920x1080 ttfb=0.13s speed=4.7Mbps
-CCTV-5 体育: 1:CS3306 107.150.60.122 1280x720 ttfb=0.07s speed=12.4Mbps | 2:BestFan-CCTV 207.56.13.146 1280x720 ttfb=0.07s speed=7.9Mbps | 3:Previous 38.75.136.137 1920x1080 ttfb=0.07s speed=13.4Mbps | 4:Previous 173.208.234.146 1920x1080 ttfb=0.07s speed=13.6Mbps
-CCTV-5+ 体育赛事: 1:CS3306 38.75.136.137 1280x720 ttfb=0.07s speed=14.2Mbps
-CCTV-6 电影: 1:BestFan-CCTV 69.30.245.50 1280x720 ttfb=0.07s speed=13.6Mbps | 2:CS3306 198.204.228.26 1280x720 ttfb=0.07s speed=13.9Mbps | 3:Previous 74.91.26.218 1280x720 ttfb=0.07s speed=14.2Mbps | 4:Previous 63.141.230.178 1280x720 ttfb=0.07s speed=13.6Mbps
-CCTV-7 国防军事: 1:BestFan-CCTV 74.91.26.218 1280x720 ttfb=0.07s speed=13.4Mbps | 2:CS3306 107.150.60.122 1280x720 ttfb=0.07s speed=13.4Mbps
-CCTV-8 电视剧: 1:BestFan-CCTV 207.56.13.146 1280x720 ttfb=0.07s speed=13.9Mbps | 2:CS3306 69.30.245.50 1280x720 ttfb=0.07s speed=13.5Mbps | 3:Previous 63.141.230.178 1920x1080 ttfb=0.07s speed=13.4Mbps | 4:BestFan-CCTV 74.91.26.218 1280x720 ttfb=0.07s speed=13.4Mbps
-CCTV-9 纪录: 1:CS3306 74.91.26.218 1280x720 ttfb=0.07s speed=14.1Mbps | 2:Previous 192.151.150.154 1280x720 ttfb=0.07s speed=13.3Mbps
-CCTV-10 科教: 1:BestFan-CCTV 74.91.26.218 1280x720 ttfb=0.07s speed=14.0Mbps | 2:Previous 38.75.136.137 1280x720 ttfb=0.07s speed=13.4Mbps
-CCTV-11 戏曲: 1:BestFan-CCTV 74.91.26.218 1280x720 ttfb=0.07s speed=13.7Mbps | 2:Previous 38.75.136.137 1280x720 ttfb=0.07s speed=13.4Mbps
-CCTV-12 社会与法: 1:BestFan-CCTV 38.75.136.137 1280x720 ttfb=0.07s speed=13.2Mbps | 2:BestFan-CCTV 107.150.60.122 1280x720 ttfb=0.07s speed=13.9Mbps
-CCTV-13 新闻: 1:BestFan-CCTV 74.91.26.218 1280x720 ttfb=0.07s speed=14.0Mbps | 2:Previous 63.141.230.178 1280x720 ttfb=0.07s speed=14.1Mbps | 3:BestFan-CCTV 38.75.136.137 1280x720 ttfb=0.07s speed=14.1Mbps | 4:BestFan-CCTV 112.123.243.37 1920x1080 ttfb=0.49s speed=1.9Mbps
-CCTV-14 少儿: 1:BestFan-CCTV 63.141.230.178 1280x720 ttfb=0.07s speed=14.3Mbps | 2:BestFan-CCTV 74.91.26.218 1280x720 ttfb=0.07s speed=14.2Mbps
-CCTV-15 音乐: 1:BestFan-CCTV 74.91.26.218 1280x720 ttfb=0.07s speed=14.2Mbps | 2:Previous 63.141.230.178 1280x720 ttfb=0.07s speed=13.2Mbps
-CCTV-16 奥林匹克: 1:BestFan-CCTV 207.56.13.146 1280x720 ttfb=0.07s speed=13.4Mbps | 2:Previous 173.208.234.146 1920x1080 ttfb=0.07s speed=13.3Mbps
-CCTV-17 农业农村: 1:BestFan-CCTV 74.91.26.218 1920x1080 ttfb=0.07s speed=14.2Mbps | 2:Previous 63.141.230.178 1920x1080 ttfb=0.07s speed=14.3Mbps
-北京卫视: 1:CS3306 107.150.60.122 1280x720 ttfb=0.07s speed=14.0Mbps | 2:Previous 63.141.230.178 1920x1080 ttfb=0.07s speed=13.5Mbps | 3:Previous 38.75.136.137 1920x1080 ttfb=0.07s speed=13.0Mbps | 4:BestFan-Province 112.123.243.37 1920x1080 ttfb=0.49s speed=1.9Mbps
-湖南卫视: 1:BestFan-Province 74.91.26.218 1280x720 ttfb=0.07s speed=13.9Mbps | 2:CS3306 63.141.230.178 1280x720 ttfb=0.07s speed=13.4Mbps | 3:Previous 204.12.221.218 1920x1080 ttfb=0.07s speed=13.4Mbps | 4:BestFan-Province 107.150.60.122 1280x720 ttfb=0.09s speed=2.3Mbps
-东方卫视: 1:CS3306 107.150.60.122 1280x720 ttfb=0.07s speed=14.1Mbps | 2:Previous 63.141.230.178 1920x1080 ttfb=0.07s speed=13.4Mbps | 3:BestFan-Province 112.123.243.37 1920x1080 ttfb=0.49s speed=1.9Mbps | 4:Previous 38.75.136.137 1920x1080 ttfb=0.07s speed=13.5Mbps
-浙江卫视: 1:CS3306 63.141.230.178 1920x1080 ttfb=0.07s speed=13.5Mbps | 2:Previous 38.75.136.137 1920x1080 ttfb=0.07s speed=13.2Mbps | 3:BestFan-Province 112.123.243.37 1920x1080 ttfb=0.49s speed=1.9Mbps | 4:Previous 107.150.60.122 1280x720 ttfb=0.07s speed=12.3Mbps
-江苏卫视: 1:BestFan-Province 107.150.60.122 1920x1080 ttfb=0.07s speed=14.0Mbps | 2:CS3306 63.141.230.178 1920x1080 ttfb=0.07s speed=14.2Mbps | 3:Previous 38.75.136.137 1920x1080 ttfb=0.07s speed=14.1Mbps | 4:BestFan-Province 112.123.243.37 1920x1080 ttfb=0.49s speed=1.9Mbps
-广东卫视: 1:CS3306 107.150.60.122 1280x720 ttfb=0.07s speed=13.6Mbps | 2:Previous 63.141.230.178 1920x1080 ttfb=0.07s speed=13.6Mbps | 3:BestFan-Province 112.123.243.37 1920x1080 ttfb=0.49s speed=1.9Mbps | 4:BestFan-Province 101.66.194.29 1920x1080 ttfb=0.50s speed=1.4Mbps
-深圳卫视: 1:CS3306 107.150.60.122 1280x720 ttfb=0.07s speed=13.6Mbps | 2:Previous 63.141.230.178 1920x1080 ttfb=0.07s speed=13.9Mbps | 3:BestFan-Province 112.123.243.37 1920x1080 ttfb=0.49s speed=1.9Mbps | 4:BestFan-Province 120.198.95.220 1920x1080 ttfb=0.51s speed=2.1Mbps
-河北卫视: 1:CS3306 38.75.136.137 1920x1080 ttfb=0.07s speed=13.5Mbps | 2:Previous 63.141.230.178 1920x1080 ttfb=0.07s speed=13.7Mbps | 3:BestFan-Province 112.123.243.37 1920x1080 ttfb=0.50s speed=2.1Mbps | 4:BestFan-Province 101.66.198.84 1920x1080 ttfb=0.49s speed=1.9Mbps
-山东卫视: 1:CS3306 198.204.228.26 1280x720 ttfb=0.07s speed=12.8Mbps | 2:Previous 107.150.60.122 1280x720 ttfb=0.07s speed=13.3Mbps
-安徽卫视: 1:CS3306 107.150.60.122 1920x1080 ttfb=0.07s speed=13.0Mbps | 2:Previous 63.141.230.178 1920x1080 ttfb=0.07s speed=13.4Mbps
-河南卫视: 1:CS3306 107.150.60.122 1280x720 ttfb=0.07s speed=13.0Mbps | 2:Previous 38.75.136.137 1920x1080 ttfb=0.07s speed=13.4Mbps
-湖北卫视: 1:CS3306 63.141.230.178 1920x1080 ttfb=0.07s speed=13.6Mbps | 2:Previous 107.150.60.122 1280x720 ttfb=0.07s speed=14.0Mbps
-天津卫视: 1:Previous 63.141.230.178 1920x1080 ttfb=0.07s speed=13.4Mbps | 2:CS3306 107.150.60.122 1280x720 ttfb=0.07s speed=4.1Mbps
+CCTV-1 综合: 1:BestFan-CCTV 74.91.26.218 1920x1080 ttfb=0.10s speed=9.2Mbps | 2:BestFan-CCTV 38.75.136.137 1280x720 ttfb=0.10s speed=9.2Mbps | 3:Previous 63.141.230.178 1920x1080 ttfb=0.10s speed=9.0Mbps | 4:BestFan-CCTV 112.123.243.37 1920x1080 ttfb=0.40s speed=1.1Mbps
+CCTV-2 财经: 1:BestFan-CCTV 198.204.228.26 1280x720 ttfb=0.10s speed=10.0Mbps | 2:Previous 192.151.150.154 1280x720 ttfb=0.12s speed=1.4Mbps
+CCTV-3 综艺: 1:BestFan-CCTV 74.91.26.218 1280x720 ttfb=0.10s speed=10.4Mbps | 2:CS3306 63.141.230.178 1280x720 ttfb=0.10s speed=9.3Mbps | 3:Previous 107.150.60.122 1920x1080 ttfb=0.10s speed=9.0Mbps
+CCTV-4 中文国际: 1:BestFan-CCTV 74.91.26.218 1280x720 ttfb=0.12s speed=1.4Mbps | 2:ChinaIPTV-Auto live-play-hls.cctvnews.cctv.com 1920x1080 ttfb=0.33s speed=3.6Mbps
+CCTV-5 体育: 1:BestFan-CCTV 207.56.13.146 1280x720 ttfb=0.10s speed=9.5Mbps | 2:CS3306 107.150.60.122 1280x720 ttfb=0.10s speed=9.0Mbps | 3:Previous 38.75.136.137 1920x1080 ttfb=0.11s speed=9.0Mbps | 4:Previous 173.208.234.146 1280x720 ttfb=0.10s speed=9.1Mbps
+CCTV-5+ 体育赛事: 1:CS3306 38.75.136.137 1280x720 ttfb=0.10s speed=9.5Mbps
+CCTV-6 电影: 1:Previous 74.91.26.218 1920x1080 ttfb=0.10s speed=9.4Mbps | 2:Previous 63.141.230.178 1280x720 ttfb=0.10s speed=8.9Mbps | 3:BestFan-CCTV 112.123.243.37 1920x1080 ttfb=0.40s speed=2.3Mbps
+CCTV-7 国防军事: 1:BestFan-CCTV 74.91.26.218 1280x720 ttfb=0.12s speed=1.4Mbps | 2:CS3306 107.150.60.122 1280x720 ttfb=0.10s speed=1.1Mbps
+CCTV-8 电视剧: 1:Previous 63.141.230.178 1920x1080 ttfb=0.10s speed=9.2Mbps | 2:BestFan-CCTV 74.91.26.218 1280x720 ttfb=0.12s speed=1.4Mbps | 3:BestFan-CCTV 207.56.13.146 1280x720 ttfb=0.11s speed=0.7Mbps | 4:BestFan-CCTV 112.123.243.37 1920x1080 ttfb=0.41s speed=2.3Mbps
+CCTV-9 纪录: 1:Previous 192.151.150.154 1280x720 ttfb=0.10s speed=9.1Mbps | 2:BestFan-CCTV 112.123.243.37 1920x1080 ttfb=0.40s speed=1.9Mbps
+CCTV-10 科教: 1:BestFan-CCTV 74.91.26.218 1280x720 ttfb=0.10s speed=8.6Mbps | 2:Previous 38.75.136.137 1280x720 ttfb=0.10s speed=9.7Mbps
+CCTV-11 戏曲: 1:BestFan-CCTV 74.91.26.218 1280x720 ttfb=0.10s speed=10.0Mbps | 2:Previous 38.75.136.137 1280x720 ttfb=0.10s speed=9.0Mbps
+CCTV-12 社会与法: 1:BestFan-CCTV 38.75.136.137 1280x720 ttfb=0.10s speed=10.3Mbps | 2:BestFan-CCTV 74.91.26.218 1280x720 ttfb=0.10s speed=9.7Mbps
+CCTV-13 新闻: 1:BestFan-CCTV 74.91.26.218 1920x1080 ttfb=0.10s speed=9.0Mbps | 2:Previous 63.141.230.178 1280x720 ttfb=0.10s speed=9.7Mbps | 3:BestFan-CCTV 38.75.136.137 1280x720 ttfb=0.10s speed=9.9Mbps | 4:BestFan-CCTV 112.123.243.37 1920x1080 ttfb=0.40s speed=2.6Mbps
+CCTV-14 少儿: 1:BestFan-CCTV 74.91.26.218 1280x720 ttfb=0.10s speed=10.3Mbps | 2:BestFan-CCTV 63.141.230.178 1280x720 ttfb=0.10s speed=9.0Mbps
+CCTV-15 音乐: 1:BestFan-CCTV 74.91.26.218 1280x720 ttfb=0.10s speed=9.6Mbps | 2:Previous 63.141.230.178 1280x720 ttfb=0.10s speed=9.4Mbps
+CCTV-16 奥林匹克: 1:Previous 173.208.234.146 1920x1080 ttfb=0.10s speed=9.5Mbps
+CCTV-17 农业农村: 1:BestFan-CCTV 74.91.26.218 1920x1080 ttfb=0.10s speed=9.1Mbps | 2:Previous 63.141.230.178 1280x720 ttfb=0.10s speed=9.1Mbps
+北京卫视: 1:CS3306 107.150.60.122 1920x1080 ttfb=0.10s speed=9.2Mbps | 2:Previous 63.141.230.178 1920x1080 ttfb=0.10s speed=9.3Mbps | 3:BestFan-Province 112.123.243.37 1920x1080 ttfb=0.41s speed=0.9Mbps | 4:Previous 38.75.136.137 1280x720 ttfb=0.10s speed=1.0Mbps
+湖南卫视: 1:BestFan-Province 107.150.60.122 1920x1080 ttfb=0.10s speed=9.1Mbps | 2:CS3306 63.141.230.178 1280x720 ttfb=0.10s speed=10.0Mbps | 3:BestFan-Province 74.91.26.218 1280x720 ttfb=0.12s speed=1.3Mbps | 4:BestFan-Province 101.66.194.29 1920x1080 ttfb=0.39s speed=2.7Mbps
+东方卫视: 1:CS3306 107.150.60.122 1920x1080 ttfb=0.10s speed=9.5Mbps | 2:Previous 38.75.136.137 1920x1080 ttfb=0.10s speed=9.7Mbps | 3:BestFan-Province 101.66.194.176 1920x1080 ttfb=0.38s speed=2.2Mbps | 4:Previous 63.141.230.178 1920x1080 ttfb=0.10s speed=9.0Mbps
+浙江卫视: 1:BestFan-Province ali-xwl.cztv.com 1920x1080 ttfb=0.29s speed=13.0Mbps | 2:CS3306 63.141.230.178 1920x1080 ttfb=0.11s speed=6.6Mbps | 3:Previous 38.75.136.137 1920x1080 ttfb=0.10s speed=10.0Mbps | 4:Previous 107.150.60.122 1920x1080 ttfb=0.10s speed=9.7Mbps
+江苏卫视: 1:BestFan-Province 38.75.136.137 1920x1080 ttfb=0.10s speed=9.1Mbps | 2:CS3306 63.141.230.178 1920x1080 ttfb=0.10s speed=9.2Mbps | 3:BestFan-Province 107.150.60.122 1920x1080 ttfb=0.10s speed=9.1Mbps | 4:BestFan-Province 112.123.243.37 1920x1080 ttfb=0.41s speed=2.6Mbps
+广东卫视: 1:CS3306 107.150.60.122 1920x1080 ttfb=0.10s speed=9.6Mbps | 2:Previous 63.141.230.178 1920x1080 ttfb=0.10s speed=9.2Mbps | 3:BestFan-Province 101.66.194.29 1920x1080 ttfb=0.40s speed=2.6Mbps | 4:BestFan-Province 112.123.243.37 1920x1080 ttfb=0.40s speed=0.9Mbps
+深圳卫视: 1:CS3306 107.150.60.122 1920x1080 ttfb=0.10s speed=9.5Mbps | 2:Previous 63.141.230.178 1920x1080 ttfb=0.10s speed=10.0Mbps | 3:BestFan-Province 112.123.243.37 1920x1080 ttfb=0.41s speed=2.6Mbps | 4:BestFan-Province 36.136.38.87 720x576 ttfb=0.44s speed=2.4Mbps
+河北卫视: 1:CS3306 38.75.136.137 1920x1080 ttfb=0.10s speed=9.6Mbps | 2:BestFan-Province 112.123.243.37 1920x1080 ttfb=0.40s speed=2.3Mbps | 3:BestFan-Province 101.66.198.84 1920x1080 ttfb=0.41s speed=1.6Mbps | 4:BestFan-Province 101.66.194.176 1920x1080 ttfb=0.45s speed=1.8Mbps
+山东卫视: 1:Previous 107.150.60.122 1920x1080 ttfb=0.10s speed=10.0Mbps | 2:CS3306 198.204.228.26 1920x1080 ttfb=0.11s speed=3.7Mbps
+安徽卫视: 1:CS3306 107.150.60.122 1920x1080 ttfb=0.10s speed=9.3Mbps | 2:Previous 63.141.230.178 1920x1080 ttfb=0.10s speed=8.9Mbps
+河南卫视: 1:Previous 38.75.136.137 1920x1080 ttfb=0.10s speed=9.7Mbps | 2:BestFan-Province dxtx.hntv.tv 1920x1080 ttfb=0.92s speed=3.2Mbps
+湖北卫视: 1:CS3306 63.141.230.178 1920x1080 ttfb=0.10s speed=10.0Mbps | 2:Previous 107.150.60.122 1920x1080 ttfb=0.10s speed=9.8Mbps
+天津卫视: 1:CS3306 107.150.60.122 1920x1080 ttfb=0.10s speed=9.7Mbps | 2:Previous 63.141.230.178 1920x1080 ttfb=0.10s speed=9.2Mbps
